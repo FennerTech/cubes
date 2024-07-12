@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Incremental Time Cubes is a Zero-Play-Game (ZPG), Browsergame, Kunst, and PBBG.">
     <title>Incremental Time Cubes</title>
+    <!-- Version: 3.007 -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -47,10 +49,20 @@
             font-size: 0.8em;
             color: #b3b3b3;
         }
+        #controls-container {
+            display: flex;
+            align-items: center;
+        }
         #controls {
             display: flex;
             align-items: center;
             flex-wrap: wrap;
+        }
+        .control-button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 5px;
         }
         #controls button {
             margin: 5px;
@@ -60,6 +72,7 @@
             background-color: #007bff;
             color: white;
             cursor: pointer;
+            position: relative;
         }
         #controls button:disabled {
             background-color: #cccccc;
@@ -68,9 +81,31 @@
         #controls button:hover:enabled {
             background-color: #0056b3;
         }
+        #mergeBtn:hover::after {
+            content: 'Merging and splitting dice can potentially destroy the statistics      ;-)';
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 2px 5px;
+            border-radius: 3px;
+            white-space: nowrap;
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.2s;
+            bottom: 100%; /* Positioniert den Tooltip über dem Button */
+            left: 50%;
+            transform: translateX(-50%);
+        }
         #colorPicker {
-            margin-right: 30px; /* Vergrößert den Abstand */
+            margin-right: 30px;
+            margin-left: 30px; /* Erhöhter Abstand zum Besucherzähler */
             margin-top: 5px;
+        }
+        .button-counter {
+            font-size: 0.8em; /* Kleinere Schriftgröße */
+            color: #007bff;
+            text-align: center;
+            margin-top: 2px; /* Abstand nach oben */
         }
         #stats {
             text-align: right;
@@ -86,8 +121,8 @@
             text-align: right;
         }
         #countdown {
-            font-size: 1.5em;
-            margin-left: 10px;
+            font-size: 1.5em; /* Verkleinerte Schriftgröße */
+            margin-left: 20px; /* Erhöhter Abstand zum About-Button */
         }
         .countdown-red {
             color: red;
@@ -109,6 +144,26 @@
             width: 12px;
             height: 12px;
             animation: flash 0.2s;
+            position: relative;
+        }
+        .cube::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 2px 5px;
+            border-radius: 3px;
+            white-space: nowrap;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s;
+            bottom: 100%; /* Positioniert den Tooltip über dem Cube */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .cube:hover::after {
+            visibility: visible;
+            opacity: 1;
         }
         .cube-blue {
             background-color: #007bff;
@@ -126,6 +181,9 @@
             background-color: white;
             border: 1px solid black;
         }
+        .black-cube {
+            background-color: black;
+        }
         .big-cube {
             display: flex;
             align-items: center;
@@ -142,6 +200,25 @@
             cursor: pointer;
         }
         .big-cube:hover {
+            background-color: #007bff;
+        }
+        .big-cube-500 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1em;
+            font-weight: bold;
+            color: white;
+            background-color: #343a40;
+            border-radius: 5px;
+            text-align: center;
+            grid-column: span 5;
+            grid-row: span 5;
+            width: auto;
+            height: auto;
+            cursor: pointer;
+        }
+        .big-cube-500:hover {
             background-color: #007bff;
         }
         .smiley {
@@ -167,6 +244,10 @@
         @keyframes flash {
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
+        }
+        @keyframes header-flash {
+            0%, 100% { background-color: #343a40; }
+            50% { background-color: yellow; }
         }
         #aboutModal, #levelInfoModal {
             display: none;
@@ -284,7 +365,7 @@
             }
         }
         #visitorCounter {
-            margin-right: 30px; /* Vergrößert den Abstand */
+            margin-left: 20px;
             background-color: white;
             padding: 5px;
             border-radius: 5px;
@@ -298,14 +379,10 @@
             <h2 id="subtitle">Wait for it ... or not ...</h2>
             <p id="author">by Marco Fenner</p>
         </div>
-        <div id="controls">
-            <!-- Besucherzähler -->
+        <div id="controls-container">
             <div id="visitorCounter">
-                <script language="JavaScript" src="https://www.besucherzaehler-kostenlos.de/js/counter.js.php?count=1&id=fennertech.github.iocubes&start=0&design=3c"></script>
+                <script language="JavaScript" src="https://www.besucherzaehler-kostenlos.de/js/counter.js.php?count=1&id=fennertech.github.iocubes&start=0&design=3b"></script>
             </div>
-            <!-- Unsichtbares Element für Abstand -->
-            <div id="spacer"></div>
-            <!-- -------------- -->
             <select id="colorPicker">
                 <option value="#343a40|#f8f9fa|#ffffff">Default</option>
                 <option value="#ff5733|#ffe6e6|#000000">Red</option>
@@ -314,12 +391,29 @@
                 <option value="#ff33a6|#ffe6f7|#000000">Pink</option>
                 <option value="#33fff7|#e6ffff|#000000">Turquoise</option>
             </select>
-            <button id="resetBtn">Reset</button>
-            <button id="clickCubeBtn">Click Cube</button>
-            <button id="mergeBtn">Merge</button>
-            <button id="saveBtn">Save</button>
-            <button id="aboutBtn">About</button>
-            <span id="countdown">10</span>
+            <div id="controls">
+                <div class="control-button-container">
+                    <button id="resetBtn">Reset</button>
+                    <div class="button-counter" id="resetCounter">0</div>
+                </div>
+                <div class="control-button-container">
+                    <button id="clickCubeBtn">Click Cube</button>
+                    <div class="button-counter" id="clickCubeCounter">0</div>
+                </div>
+                <div class="control-button-container">
+                    <button id="mergeBtn">Merge</button>
+                    <div class="button-counter" id="mergeCounter">0</div>
+                </div>
+                <div class="control-button-container">
+                    <button id="saveBtn">Save</button>
+                    <div class="button-counter" id="saveCounter">0</div>
+                </div>
+                <div class="control-button-container">
+                    <button id="aboutBtn">About</button>
+                    <div class="button-counter" id="aboutCounter">0</div>
+                </div>
+                <span id="countdown">10</span>
+            </div>
         </div>
         <div id="stats">
             <div id="timer">00:00:00</div> <!-- Neuer Timer -->
@@ -426,50 +520,32 @@
         const closeLevelInfoModal = document.getElementById('closeLevelInfoModal');
         const timerDiv = document.getElementById('timer');
 
-        // Worker Script as a Blob
-        const workerScript = `
-            let countdown = 10;
-            setInterval(() => {
-                countdown--;
-                if (countdown <= 0) {
-                    postMessage('addCube');
-                    countdown = 10;
-                } else {
-                    postMessage('updateCountdown');
-                }
-                postMessage(countdown);
-            }, 1000);
-        `;
-        const blob = new Blob([workerScript], { type: 'application/javascript' });
-        const worker = new Worker(URL.createObjectURL(blob));
-
-        worker.onmessage = function(e) {
-            if (e.data === 'addCube') {
-                addCube();
-            } else if (e.data === 'updateCountdown') {
-                updateCountdown();
-            } else {
-                countdown = e.data;
-                countdownSpan.textContent = String(countdown).padStart(2, '0');
-                countdownSpan.classList.toggle('countdown-red', countdown <= 3);
-            }
+        const buttonCounters = {
+            reset: 0,
+            clickCube: 0,
+            merge: 0,
+            save: 0,
+            about: 0
         };
 
-        function loadState() {
-            autoCubes = parseInt(localStorage.getItem('autoCubes')) || 0;
-            clickCubes = parseInt(localStorage.getItem('clickCubes')) || 0;
-            totalCubes = parseInt(localStorage.getItem('totalCubes')) || 0;
-            smallCubes = parseInt(localStorage.getItem('smallCubes')) || 0;
-            bigCubes = JSON.parse(localStorage.getItem('bigCubes')) || [];
-            customCubes = JSON.parse(localStorage.getItem('customCubes')) || [];
-            level = parseInt(localStorage.getItem('level')) || 1;
-            startTime = localStorage.getItem('startTime') || Date.now();
-            updateStats();
-            renderCubes();
-            startTimer();
+        function updateButtonCounters() {
+            document.getElementById('resetCounter').textContent = buttonCounters.reset;
+            document.getElementById('clickCubeCounter').textContent = buttonCounters.clickCube;
+            document.getElementById('mergeCounter').textContent = buttonCounters.merge;
+            document.getElementById('saveCounter').textContent = buttonCounters.save;
+            document.getElementById('aboutCounter').textContent = buttonCounters.about;
         }
 
         function saveState() {
+            const cubesData = [];
+            document.querySelectorAll('.cube, .big-cube, .big-cube-500, .smiley, .black-circle').forEach(cube => {
+                cubesData.push({
+                    class: cube.className,
+                    textContent: cube.textContent,
+                    dataset: cube.dataset
+                });
+            });
+            localStorage.setItem('cubesData', JSON.stringify(cubesData));
             localStorage.setItem('autoCubes', autoCubes);
             localStorage.setItem('clickCubes', clickCubes);
             localStorage.setItem('totalCubes', totalCubes);
@@ -478,18 +554,45 @@
             localStorage.setItem('customCubes', JSON.stringify(customCubes));
             localStorage.setItem('level', level);
             localStorage.setItem('startTime', startTime);
+            localStorage.setItem('buttonCounters', JSON.stringify(buttonCounters));
+        }
+
+        function loadState() {
+            const cubesData = JSON.parse(localStorage.getItem('cubesData')) || [];
+            cubeContainer.innerHTML = '';
+            cubesData.forEach(data => {
+                const cube = document.createElement('div');
+                cube.className = data.class;
+                cube.textContent = data.textContent;
+                Object.assign(cube.dataset, data.dataset);
+                if (cube.classList.contains('big-cube') || cube.classList.contains('big-cube-500')) {
+                    cube.addEventListener('click', convertBigCubeToSmall);
+                } else if (cube.classList.contains('smiley')) {
+                    cube.addEventListener('click', convertSmileyToCube);
+                } else if (cube.classList.contains('black-circle')) {
+                    cube.addEventListener('click', handleBlackCircleClick);
+                } else if (cube.classList.contains('cube-custom')) {
+                    cube.addEventListener('click', convertCustomToNormal);
+                }
+                cubeContainer.appendChild(cube);
+            });
+            autoCubes = parseInt(localStorage.getItem('autoCubes')) || 0;
+            clickCubes = parseInt(localStorage.getItem('clickCubes')) || 0;
+            totalCubes = parseInt(localStorage.getItem('totalCubes')) || 0;
+            smallCubes = parseInt(localStorage.getItem('smallCubes')) || 0;
+            bigCubes = JSON.parse(localStorage.getItem('bigCubes')) || [];
+            customCubes = JSON.parse(localStorage.getItem('customCubes')) || [];
+            level = parseInt(localStorage.getItem('level')) || 1;
+            startTime = localStorage.getItem('startTime') || Date.now();
+            Object.assign(buttonCounters, JSON.parse(localStorage.getItem('buttonCounters')) || {});
+            updateButtonCounters();
+            updateStats();
+            startTimer();
         }
 
         function resetState() {
             if (confirm("Are you sure you want to reset?")) {
-                localStorage.setItem('autoCubes', 0);
-                localStorage.setItem('clickCubes', 0);
-                localStorage.setItem('totalCubes', 0);
-                localStorage.setItem('smallCubes', 0);
-                localStorage.setItem('bigCubes', JSON.stringify([]));
-                localStorage.setItem('customCubes', JSON.stringify([]));
-                localStorage.setItem('level', 1);
-                localStorage.setItem('startTime', Date.now());
+                localStorage.clear();
                 autoCubes = 0;
                 clickCubes = 0;
                 totalCubes = 0;
@@ -498,6 +601,12 @@
                 customCubes = [];
                 level = 1;
                 startTime = Date.now();
+                buttonCounters.reset++;
+                buttonCounters.clickCube = 0;
+                buttonCounters.merge = 0;
+                buttonCounters.save = 0;
+                buttonCounters.about = 0;
+                updateButtonCounters();
                 updateStats();
                 renderCubes();
                 countdown = 10;
@@ -534,7 +643,7 @@
             cubeContainer.innerHTML = '';
             bigCubes.forEach(size => {
                 const bigCube = document.createElement('div');
-                bigCube.className = 'big-cube';
+                bigCube.className = size === 500 ? 'big-cube big-cube-500' : 'big-cube';
                 bigCube.style.gridColumn = `span ${Math.ceil(Math.sqrt(size))}`;
                 bigCube.style.gridRow = `span ${Math.ceil(Math.sqrt(size))}`;
                 bigCube.textContent = size;
@@ -567,6 +676,9 @@
                 customCubes.push(smallCubes + i);
             }
             smallCubes += size;
+            if (size === 500) {
+                autoCubes -= 500;
+            }
             updateStats();
         }
 
@@ -583,16 +695,29 @@
             smiley.classList.remove('smiley');
             smiley.classList.add('cube-blue');
             smiley.textContent = '';
-            totalCubes++;
-            smallCubes++;
+            const smallCubesList = document.querySelectorAll('.cube:not(.smiley):not(.black-circle):not(.cube-special):not(.cube-custom)');
+            const randomCount = Math.floor(Math.random() * smallCubesList.length);
+            for (let i = 0; i < randomCount; i++) {
+                const randomIndex = Math.floor(Math.random() * smallCubesList.length);
+                smallCubesList[randomIndex].classList.add('smiley');
+                smallCubesList[randomIndex].textContent = '😊';
+            }
             updateStats();
-            changeCubeColors();
         }
 
         function addCube(autoGenerated = true) {
             const cube = document.createElement('div');
             const randomSize = Math.random() < 1 / 300 ? Math.floor(Math.random() * 7) + 2 : 1;
-            if (randomSize > 1) {
+            if (Math.random() < 1 / 3000) {
+                cube.className = 'big-cube-500';
+                cube.style.gridColumn = `span 5`;
+                cube.style.gridRow = `span 5`;
+                cube.textContent = 500;
+                bigCubes.push(500);
+                autoCubes += 500;
+                cube.addEventListener('click', convertBigCubeToSmall);
+                cubeContainer.appendChild(cube);
+            } else if (randomSize > 1) {
                 cube.className = 'big-cube';
                 cube.style.gridColumn = `span ${Math.ceil(Math.sqrt(randomSize))}`;
                 cube.style.gridRow = `span ${Math.ceil(Math.sqrt(randomSize))}`;
@@ -605,16 +730,21 @@
                 if (Math.random() < 1 / 1000) {
                     cube.classList.add('smiley');
                     cube.textContent = '😊';
+                    cube.setAttribute('data-tooltip', '1:1000');
                     cube.addEventListener('click', convertSmileyToCube);
-                } else if (Math.random() < 1 / 2000) {
+                } else if (Math.random() < 1 / 1500) {
                     cube.classList.add('black-circle');
+                    cube.setAttribute('data-tooltip', '1:1500');
                     cube.addEventListener('click', handleBlackCircleClick);
                 } else if ((totalCubes + 1) % 1000 === 0) {
                     cube.classList.add('cube-special');
+                    cube.setAttribute('data-tooltip', '1:1000');
                 } else if ((totalCubes + 1) % 100 === 0) {
                     cube.classList.add('cube-red');
+                    cube.setAttribute('data-tooltip', '1:100');
                 } else if ((totalCubes + 1) % 10 === 0) {
                     cube.classList.add('cube-green');
+                    cube.setAttribute('data-tooltip', '1:10');
                 } else {
                     cube.classList.add('cube-blue');
                 }
@@ -624,28 +754,36 @@
             totalCubes++;
             if (autoGenerated) {
                 autoCubes++;
+                if (!cube.classList.contains('cube-blue') && !cube.classList.contains('cube-red') && !cube.classList.contains('cube-green')) {
+                    flashHeader();
+                }
             } else {
                 clickCubes++;
             }
             updateStats();
         }
 
+        function flashHeader() {
+            const header = document.getElementById('header');
+            header.style.animation = 'header-flash 0.5s';
+            setTimeout(() => {
+                header.style.animation = '';
+            }, 500);
+        }
+
         function handleBlackCircleClick(event) {
-            if (confirm("Really?")) {
-                const cubes = document.querySelectorAll('.cube');
-                const halfCubes = Math.floor(cubes.length / 2);
-                for (let i = 0; i < halfCubes; i++) {
-                    cubes[i].remove();
-                    smallCubes--;
-                }
-                updateStats();
-            }
+            const cubes = document.querySelectorAll('.cube:not(.black-circle)');
+            cubes.forEach(cube => {
+                cube.classList.add('black-cube');
+            });
         }
 
         function clickCube() {
             addCube(false);
             resetCountdown();
             disableButton(document.getElementById('clickCubeBtn'), 5);
+            buttonCounters.clickCube++;
+            updateButtonCounters();
         }
 
         function mergeCubes() {
@@ -663,6 +801,8 @@
             smallCubesList.forEach(cube => cube.remove());
             cubeContainer.appendChild(bigCube);
             saveState();
+            buttonCounters.merge++;
+            updateButtonCounters();
         }
 
         function resetCountdown() {
@@ -723,9 +863,13 @@
         document.getElementById('saveBtn').addEventListener('click', function() {
             saveState();
             disableButton(this, 1);
+            buttonCounters.save++;
+            updateButtonCounters();
         });
         document.getElementById('aboutBtn').addEventListener('click', function() {
             aboutModal.style.display = "block";
+            buttonCounters.about++;
+            updateButtonCounters();
         });
 
         closeAboutModal.onclick = function() {
@@ -747,6 +891,35 @@
                 levelInfoModal.style.display = "none";
             }
         }
+
+        // Worker Script als Blob
+        const workerScript = `
+            let countdown = 10;
+            setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    postMessage('addCube');
+                    countdown = 10;
+                } else {
+                    postMessage('updateCountdown');
+                }
+                postMessage(countdown);
+            }, 1000);
+        `;
+        const blob = new Blob([workerScript], { type: 'application/javascript' });
+        const worker = new Worker(URL.createObjectURL(blob));
+
+        worker.onmessage = function(e) {
+            if (e.data === 'addCube') {
+                addCube();
+            } else if (e.data === 'updateCountdown') {
+                updateCountdown();
+            } else {
+                countdown = e.data;
+                countdownSpan.textContent = String(countdown).padStart(2, '0');
+                countdownSpan.classList.toggle('countdown-red', countdown <= 3);
+            }
+        };
 
         window.onload = () => {
             if (!localStorage.getItem('cookiesAccepted')) {

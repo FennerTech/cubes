@@ -10,29 +10,31 @@
             margin: 0;
             padding: 0;
             background-color: #f8f9fa;
+            overflow-x: hidden; /* Verhindert horizontales Scrollen */
         }
         #header {
             position: fixed;
             top: 0;
-            width: 100%;
+            left: 20px; /* Abstand zum linken Rand */
+            right: 20px; /* Abstand zum rechten Rand */
             background-color: #343a40;
             border-bottom: 2px solid #007bff;
             padding: 10px;
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
             color: white;
-            flex-wrap: wrap;
-            z-index: 1000; /* ensure the header is always on top */
+            z-index: 1000;
         }
         #title-container {
             display: flex;
             flex-direction: column;
-            margin-left: 30px;
+            margin-left: 10px;
         }
         #title {
             margin: 0;
-            font-size: 2em;
+            font-size: 1.5em;
         }
         #subtitle {
             margin: 0;
@@ -51,8 +53,7 @@
             flex-wrap: wrap;
         }
         #controls button {
-            margin-right: 10px;
-            margin-top: 5px;
+            margin: 5px;
             padding: 5px 10px;
             border: none;
             border-radius: 5px;
@@ -68,13 +69,13 @@
             background-color: #0056b3;
         }
         #colorPicker {
-            margin-right: 20px;
+            margin-right: 30px; /* Vergrößert den Abstand */
             margin-top: 5px;
         }
         #stats {
             text-align: right;
-            font-size: 1em;
-            margin-right: 60px;
+            font-size: 0.9em;
+            margin-right: 10px;
         }
         #stats div {
             margin-bottom: 5px;
@@ -86,16 +87,17 @@
         }
         #countdown {
             font-size: 1.5em;
-            margin-left: 20px;
+            margin-left: 10px;
         }
         .countdown-red {
             color: red;
         }
         #content {
-            margin-top: 150px;
+            margin-top: 150px; /* Erhöht den Platz für den Header */
             padding: 20px;
             overflow-y: auto;
             height: calc(100vh - 150px);
+            box-sizing: border-box;
         }
         .cube-container {
             display: grid;
@@ -120,6 +122,10 @@
         .cube-special {
             background-color: #ffeb3b;
         }
+        .cube-custom {
+            background-color: white;
+            border: 1px solid black;
+        }
         .big-cube {
             display: flex;
             align-items: center;
@@ -133,6 +139,10 @@
             grid-column: span 3;
             width: auto;
             height: auto;
+            cursor: pointer;
+        }
+        .big-cube:hover {
+            background-color: #007bff;
         }
         .smiley {
             width: 12px;
@@ -143,6 +153,16 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+        }
+        .black-circle {
+            width: 12px;
+            height: 12px;
+            background-color: black;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .black-circle:hover {
+            background-color: red;
         }
         @keyframes flash {
             0%, 100% { opacity: 1; }
@@ -157,7 +177,6 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgb(0,0,0);
             background-color: rgba(0,0,0,0.4);
             justify-content: center;
             align-items: center;
@@ -190,7 +209,6 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgb(0,0,0);
             background-color: rgba(0,0,0,0.8);
             justify-content: center;
             align-items: center;
@@ -229,9 +247,10 @@
             #header {
                 flex-direction: column;
                 align-items: flex-start;
+                padding: 10px;
             }
             #title {
-                font-size: 1.5em;
+                font-size: 1.2em;
             }
             #subtitle {
                 font-size: 0.9em;
@@ -260,9 +279,15 @@
                 font-size: 1.2em;
             }
             #content {
-                margin-top: 200px;
-                height: calc(100vh - 200px);
+                margin-top: 180px;
+                height: calc(100vh - 180px);
             }
+        }
+        #visitorCounter {
+            margin-right: 30px; /* Vergrößert den Abstand */
+            background-color: white;
+            padding: 5px;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -274,6 +299,13 @@
             <p id="author">by Marco Fenner</p>
         </div>
         <div id="controls">
+            <!-- Besucherzähler -->
+            <div id="visitorCounter">
+                <script language="JavaScript" src="https://www.besucherzaehler-kostenlos.de/js/counter.js.php?count=1&id=fennertech.github.iocubes&start=0&design=3c"></script>
+            </div>
+            <!-- Unsichtbares Element für Abstand -->
+            <div id="spacer"></div>
+            <!-- -------------- -->
             <select id="colorPicker">
                 <option value="#343a40|#f8f9fa|#ffffff">Default</option>
                 <option value="#ff5733|#ffe6e6|#000000">Red</option>
@@ -290,6 +322,7 @@
             <span id="countdown">10</span>
         </div>
         <div id="stats">
+            <div id="timer">00:00:00</div> <!-- Neuer Timer -->
             <div><span id="autoCubes">0</span> Auto-Cubes (<span id="autoCubesPercent">0%</span>)</div>
             <div><span id="clickCubes">0</span> Click-Cubes (<span id="clickCubesPercent">0%</span>)</div>
             <div><span id="totalCubes">0</span> Total Cubes</div>
@@ -314,9 +347,20 @@
                 This is a private, non-commercial website. It does not generate any revenue and is purely for personal use. <br>/ Dies ist eine private, nicht-kommerzielle Webseite. Sie generiert keine Einnahmen und dient ausschließlich dem persönlichen Gebrauch.<br>
                 <br>
                 The game state is saved locally on your device using the local storage of your browser. No personal data is stored or shared.<br> / Der Spielstand wird lokal auf Ihrem Gerät im lokalen Speicher Ihres Browsers gespeichert. Es werden keine persönlichen Daten gespeichert oder weitergegeben.<br>
-                Visitor numbers are evaluated anonymously.<br> / Besucherzahlen werden anonym ausgewertet.<br><br>
+                <br>
                 This website complies with the General Data Protection Regulation (GDPR).<br> / Diese Webseite entspricht der Datenschutz-Grundverordnung (DSGVO).<br><br>
-                This website does not contain links to other websites.<br> / Diese Webseite enthält keine Links zu anderen Webseiten.
+<h3>[en] Visitor Counter from besucherzaehler-kostenlos.de</h3>
+<p>This website uses an external counter to track the number of page views. For this, a JavaScript is loaded from an external website. The server of <a href="https://www.besucherzaehler-kostenlos.de">besucherzaehler-kostenlos.de</a> stores the IP address of the access anonymously and temporarily in a LOG file, which is regularly and irrevocably deleted.</p>
+<p>To ensure the proper functioning of the counter, it also saves a so-called session cookie on the visitor's computer. This is usually deleted by the browser once it is closed. This cookie does not store any personal information. It only contains the information of the accessed domain and a boolean tag (true/false) to mark the visitor as already counted.</p>
+<p>No personal or personally identifiable data is collected by the visitor counter. Tracking or assignment of accesses is not possible at any time. Special thanks to <a href="https://www.putzfrau-agentur.de">putzfrau-agentur.de</a>, whose support makes this free service possible.</p><br>                
+<h3>[de] Besucherzähler von besucherzaehler-kostenlos.de</h3>
+
+<p>Diese Webseite verwendet einen externen Zähler, um die Anzahl der Webseitenaufrufe zu erfassen. Dafür wird ein Java-Script von einer externe Webseite geladen. Der Server von <a href="https://www.besucherzaehler-kostenlos.de">besucherzaehler-kostenlos.de</a> speichert die IP-Adresse des Zugriffs anonymisiert und zeitlich begrenzt in einer LOG-Datei ab. Diese wird regelmäßig unwiderruflich gelöscht.</p>
+
+<p>Um die korrekte Funktionsweise des Zählers zu gewährleisten, speichert der Besucherzähler zudem einen sogenannten Session-Cookie auf dem Computer des Besuchers ab. Dieser wird in der Regel vom Browser gelöscht, sobald er geschlossen wird. In diesem Cookie werden keine persönlichen Informationen gespeichert. Er enthält lediglich die Information der aufgerufenen Domain, sowie einen boolschen Tag (true/false), um den Besucher als bereits gezählt zu markieren.</p>
+
+<p>Es werden auch darüberhinaus keine persönlichen oder personenbezogenen Daten vom Besucherzähler erhoben. Eine Nachverfolgung oder Zuordnung der Zugriffe ist zu keiner Zeit möglich. Ein besonderer Dank geht an <a href="https://www.putzfrau-agentur.de">putzfrau-agentur.de</a>, durch dessen Unterstützung dieser kostenlose Service erst möglich gemacht wird.</p><br>
+
             </p>
         </div>
     </div>
@@ -337,10 +381,12 @@
     <div id="cookieConsentModal">
         <div id="cookieConsentContent">
             <h2>Cookie Consent / Cookie-Zustimmung</h2>
-            <p>We do not use cookies to collect personal data. Your game state is saved locally on your device.</p>
-            <p>To evaluate the number of visitors, we use anonymized data.</p>
-            <p>Wir verwenden keine Cookies, um persönliche Daten zu sammeln. Ihr Spielstand wird nur lokal auf Ihrem Gerät gespeichert.</p>
-            <p>Zur statistischen Auswertung der Besucherzahlen nutzen wir anonymisierte Daten.</p>
+            <p>[en] This website uses only one cookie for the visitor counter.</p>
+            <p>The game's progress is also stored locally.</p>
+	    <p>No other cookies or personal data are stored or shared.</p><br>
+            <p>[de] Diese Webseite speichert nur einen Cookie für den Besucherzähler.</p>
+            <p>Der Spielstand des Spiels wird ebenfalls lokal gespeichert.</p>
+	    <p>Es werden keine weiteren Cookies oder persönliche Daten gespeichert oder geteilt.</p>
             <button id="acceptCookiesBtn">Accept / Akzeptieren</button>
             <button id="denyCookiesBtn">Deny / Ablehnen</button>
         </div>
@@ -353,8 +399,11 @@
         let totalCubes = 0;
         let smallCubes = 0;
         let bigCubes = [];
+        let customCubes = [];
         let level = 1;
         let interval;
+        let startTime = localStorage.getItem('startTime') || Date.now();
+        let timerInterval;
         let cubeColors = ["#007bff", "#28a745", "#ff6f61", "#ffeb3b", "#ff33a6", "#33fff7"];
         const contentDiv = document.getElementById('content');
         const cubeContainer = document.getElementById('cubeContainer');
@@ -375,6 +424,7 @@
         const cubesToNextLevelSpan = document.getElementById('cubesToNextLevel');
         const levelInfoModal = document.getElementById('levelInfoModal');
         const closeLevelInfoModal = document.getElementById('closeLevelInfoModal');
+        const timerDiv = document.getElementById('timer');
 
         // Worker Script as a Blob
         const workerScript = `
@@ -400,7 +450,7 @@
                 updateCountdown();
             } else {
                 countdown = e.data;
-                countdownSpan.textContent = countdown;
+                countdownSpan.textContent = String(countdown).padStart(2, '0');
                 countdownSpan.classList.toggle('countdown-red', countdown <= 3);
             }
         };
@@ -411,9 +461,12 @@
             totalCubes = parseInt(localStorage.getItem('totalCubes')) || 0;
             smallCubes = parseInt(localStorage.getItem('smallCubes')) || 0;
             bigCubes = JSON.parse(localStorage.getItem('bigCubes')) || [];
+            customCubes = JSON.parse(localStorage.getItem('customCubes')) || [];
             level = parseInt(localStorage.getItem('level')) || 1;
+            startTime = localStorage.getItem('startTime') || Date.now();
             updateStats();
             renderCubes();
+            startTimer();
         }
 
         function saveState() {
@@ -422,7 +475,9 @@
             localStorage.setItem('totalCubes', totalCubes);
             localStorage.setItem('smallCubes', smallCubes);
             localStorage.setItem('bigCubes', JSON.stringify(bigCubes));
+            localStorage.setItem('customCubes', JSON.stringify(customCubes));
             localStorage.setItem('level', level);
+            localStorage.setItem('startTime', startTime);
         }
 
         function resetState() {
@@ -432,17 +487,22 @@
                 localStorage.setItem('totalCubes', 0);
                 localStorage.setItem('smallCubes', 0);
                 localStorage.setItem('bigCubes', JSON.stringify([]));
+                localStorage.setItem('customCubes', JSON.stringify([]));
                 localStorage.setItem('level', 1);
+                localStorage.setItem('startTime', Date.now());
                 autoCubes = 0;
                 clickCubes = 0;
                 totalCubes = 0;
                 smallCubes = 0;
                 bigCubes = [];
+                customCubes = [];
                 level = 1;
+                startTime = Date.now();
                 updateStats();
                 renderCubes();
                 countdown = 10;
-                countdownSpan.textContent = countdown;
+                countdownSpan.textContent = String(countdown).padStart(2, '0');
+                startTimer();
             }
         }
 
@@ -478,26 +538,44 @@
                 bigCube.style.gridColumn = `span ${Math.ceil(Math.sqrt(size))}`;
                 bigCube.style.gridRow = `span ${Math.ceil(Math.sqrt(size))}`;
                 bigCube.textContent = size;
+                bigCube.addEventListener('click', convertBigCubeToSmall);
                 cubeContainer.appendChild(bigCube);
             });
             for (let i = 0; i < smallCubes; i++) {
                 const cube = document.createElement('div');
-                cube.className = 'cube';
-                if ((i + 1) % 5000 === 0) {
-                    cube.classList.add('smiley');
-                    cube.textContent = '😊';
-                    cube.addEventListener('click', convertSmileyToCube);
-                } else if ((i + 1) % 1000 === 0) {
-                    cube.classList.add('cube-special');
-                } else if ((i + 1) % 100 === 0) {
-                    cube.classList.add('cube-red');
-                } else if ((i + 1) % 10 === 0) {
-                    cube.classList.add('cube-green');
-                } else {
-                    cube.classList.add('cube-blue');
-                }
+                cube.className = 'cube cube-blue';
                 cubeContainer.appendChild(cube);
             }
+            customCubes.forEach(position => {
+                const customCube = document.createElement('div');
+                customCube.className = 'cube cube-custom';
+                customCube.addEventListener('click', convertCustomToNormal);
+                cubeContainer.appendChild(customCube);
+            });
+        }
+
+        function convertBigCubeToSmall(event) {
+            const bigCube = event.target;
+            const size = parseInt(bigCube.textContent);
+            bigCubes = bigCubes.filter(cubeSize => cubeSize !== size);
+            bigCube.remove();
+            for (let i = 0; i < size; i++) {
+                const smallCube = document.createElement('div');
+                smallCube.className = 'cube cube-custom';
+                smallCube.addEventListener('click', convertCustomToNormal);
+                cubeContainer.appendChild(smallCube);
+                customCubes.push(smallCubes + i);
+            }
+            smallCubes += size;
+            updateStats();
+        }
+
+        function convertCustomToNormal(event) {
+            const customCube = event.target;
+            customCube.classList.remove('cube-custom');
+            customCube.classList.add('cube-blue');
+            customCube.removeEventListener('click', convertCustomToNormal);
+            customCubes = customCubes.filter(pos => pos !== Array.prototype.indexOf.call(cubeContainer.children, customCube));
         }
 
         function convertSmileyToCube(event) {
@@ -513,23 +591,37 @@
 
         function addCube(autoGenerated = true) {
             const cube = document.createElement('div');
-            cube.className = 'cube';
-            if (Math.random() < 1 / 5000) {
-                cube.classList.add('smiley');
-                cube.textContent = '😊';
-                cube.addEventListener('click', convertSmileyToCube);
-            } else if ((totalCubes + 1) % 1000 === 0) {
-                cube.classList.add('cube-special');
-            } else if ((totalCubes + 1) % 100 === 0) {
-                cube.classList.add('cube-red');
-            } else if ((totalCubes + 1) % 10 === 0) {
-                cube.classList.add('cube-green');
+            const randomSize = Math.random() < 1 / 300 ? Math.floor(Math.random() * 7) + 2 : 1;
+            if (randomSize > 1) {
+                cube.className = 'big-cube';
+                cube.style.gridColumn = `span ${Math.ceil(Math.sqrt(randomSize))}`;
+                cube.style.gridRow = `span ${Math.ceil(Math.sqrt(randomSize))}`;
+                cube.textContent = randomSize;
+                bigCubes.push(randomSize);
+                cube.addEventListener('click', convertBigCubeToSmall);
+                cubeContainer.appendChild(cube);
             } else {
-                cube.classList.add('cube-blue');
+                cube.className = 'cube';
+                if (Math.random() < 1 / 1000) {
+                    cube.classList.add('smiley');
+                    cube.textContent = '😊';
+                    cube.addEventListener('click', convertSmileyToCube);
+                } else if (Math.random() < 1 / 2000) {
+                    cube.classList.add('black-circle');
+                    cube.addEventListener('click', handleBlackCircleClick);
+                } else if ((totalCubes + 1) % 1000 === 0) {
+                    cube.classList.add('cube-special');
+                } else if ((totalCubes + 1) % 100 === 0) {
+                    cube.classList.add('cube-red');
+                } else if ((totalCubes + 1) % 10 === 0) {
+                    cube.classList.add('cube-green');
+                } else {
+                    cube.classList.add('cube-blue');
+                }
+                cubeContainer.appendChild(cube);
+                smallCubes++;
             }
-            cubeContainer.appendChild(cube);
             totalCubes++;
-            smallCubes++;
             if (autoGenerated) {
                 autoCubes++;
             } else {
@@ -538,9 +630,22 @@
             updateStats();
         }
 
+        function handleBlackCircleClick(event) {
+            if (confirm("Really?")) {
+                const cubes = document.querySelectorAll('.cube');
+                const halfCubes = Math.floor(cubes.length / 2);
+                for (let i = 0; i < halfCubes; i++) {
+                    cubes[i].remove();
+                    smallCubes--;
+                }
+                updateStats();
+            }
+        }
+
         function clickCube() {
             addCube(false);
             resetCountdown();
+            disableButton(document.getElementById('clickCubeBtn'), 5);
         }
 
         function mergeCubes() {
@@ -554,6 +659,7 @@
             bigCube.style.gridColumn = `span ${Math.ceil(Math.sqrt(bigCubeSize))}`;
             bigCube.style.gridRow = `span ${Math.ceil(Math.sqrt(bigCubeSize))}`;
             bigCube.textContent = bigCubeSize;
+            bigCube.addEventListener('click', convertBigCubeToSmall);
             smallCubesList.forEach(cube => cube.remove());
             cubeContainer.appendChild(bigCube);
             saveState();
@@ -564,13 +670,13 @@
         }
 
         function updateCountdown() {
-            countdownSpan.textContent = countdown;
+            countdownSpan.textContent = String(countdown).padStart(2, '0');
             countdownSpan.classList.toggle('countdown-red', countdown <= 3);
         }
 
-        function disableButton(button) {
+        function disableButton(button, seconds) {
             button.disabled = true;
-            setTimeout(() => button.disabled = false, 5000);
+            setTimeout(() => button.disabled = false, seconds * 1000);
         }
 
         function changeColors() {
@@ -590,6 +696,17 @@
             });
         }
 
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                const elapsedTime = Date.now() - startTime;
+                const hours = Math.floor(elapsedTime / (1000 * 60 * 60)).toString().padStart(2, '0');
+                const minutes = Math.floor((elapsedTime % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+                const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000).toString().padStart(2, '0');
+                timerDiv.textContent = `${hours}:${minutes}:${seconds}`;
+            }, 1000);
+        }
+
         colorPicker.addEventListener('change', changeColors);
 
         document.getElementById('resetBtn').addEventListener('click', function() {
@@ -597,15 +714,15 @@
         });
         document.getElementById('clickCubeBtn').addEventListener('click', function() {
             clickCube();
-            disableButton(this);
+            disableButton(this, 5);
         });
         document.getElementById('mergeBtn').addEventListener('click', function() {
             mergeCubes();
-            disableButton(this);
+            disableButton(this, 10);
         });
         document.getElementById('saveBtn').addEventListener('click', function() {
             saveState();
-            disableButton(this);
+            disableButton(this, 1);
         });
         document.getElementById('aboutBtn').addEventListener('click', function() {
             aboutModal.style.display = "block";
